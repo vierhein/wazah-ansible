@@ -59,3 +59,22 @@
   shell: docker compose up -d
   args:
     chdir: "/home/vagrant/wazuh-docker/single-node"
+
+- name: Download and Install ngrok
+  shell: | 
+    curl -O https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz \
+    && tar xvzf ngrok-v3-stable-linux-amd64.tgz -C /usr/local/bin \
+    && /usr/local/bin/ngrok config add-authtoken 2SVjZrBH1GHCkL73ghmSdLL5cjA_55pSui56Lcu7ZHLMCMcAg
+  args:
+    chdir: "/home/vagrant/wazuh-docker" 
+  
+- name: Run ngrok on port 443
+  shell: nohup /usr/local/bin/ngrok http 443 > /var/log/ngrok.log 2>&1 &
+  
+- name: Get Wazuh dashboard URL
+  shell: curl http://localhost:4040/api/tunnels | jq ".tunnels[0].public_url"
+  register: ngrok_output
+
+- name: Ngrok output 
+  debug:
+    msg: "(Ngrok) Wazuh dashboard URL: {{ ngrok_output.stdout }}"
