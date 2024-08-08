@@ -1,0 +1,5 @@
+- name: wazah-provision
+  hosts: all
+  become: true
+  roles:
+    - wazuh-server-docker
