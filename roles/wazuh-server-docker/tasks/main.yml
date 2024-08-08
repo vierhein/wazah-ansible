@@ -42,3 +42,20 @@
     name: vagrant
     groups: docker
     append: yes
+
+- name: Clone wazuh docker repo
+  ansible.builtin.git:
+    repo: 'https://github.com/wazuh/wazuh-docker.git'
+    dest: /home/vagrant/wazuh-docker
+    version: v4.8.1
+    depth: 1
+
+- name: Creating certs
+  shell: docker compose -f generate-indexer-certs.yml run --rm generator
+  args:
+    chdir: "/home/vagrant/wazuh-docker/single-node"
+
+- name: Run docker compose
+  shell: docker compose up -d
+  args:
+    chdir: "/home/vagrant/wazuh-docker/single-node"
