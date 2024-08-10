@@ -1,5 +1,12 @@
-- name: wazah-provision
-  hosts: all
+- name: wazuh-server
+  hosts: wazuh-server
   become: true
   roles:
     - wazuh-server-docker
+
+- name: wazuh-manager
+  hosts: wazuh-manager
+  become: true
+  roles:
+    - wazuh-manager-vm
+

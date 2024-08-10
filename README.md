@@ -1,1 +1,1 @@
-# wazah-ansible
+# wazuh-ansible

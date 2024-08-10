@@ -32,13 +32,13 @@
     - docker-compose-plugin
 
 - name: Start Docker service
-  service:
+  ansible.builtin.service:
     name: docker
     state: started
     enabled: yes
 
 - name: Add user vagrant to docker group
-  user:
+  ansible.builtin.user:
     name: vagrant
     groups: docker
     append: yes
@@ -51,17 +51,17 @@
     depth: 1
 
 - name: Creating certs
-  shell: docker compose -f generate-indexer-certs.yml run --rm generator
+  ansible.builtin.shell: docker compose -f generate-indexer-certs.yml run --rm generator
   args:
     chdir: "/home/vagrant/wazuh-docker/single-node"
 
 - name: Run docker compose
-  shell: docker compose up -d
+  ansible.builtin.shell: docker compose up -d
   args:
     chdir: "/home/vagrant/wazuh-docker/single-node"
 
 - name: Download and Install ngrok
-  shell: | 
+  ansible.builtin.shell: | 
     curl -O https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz \
     && tar xvzf ngrok-v3-stable-linux-amd64.tgz -C /usr/local/bin \
     && /usr/local/bin/ngrok config add-authtoken 2SVjZrBH1GHCkL73ghmSdLL5cjA_55pSui56Lcu7ZHLMCMcAg
@@ -69,12 +69,25 @@
     chdir: "/home/vagrant/wazuh-docker" 
   
 - name: Run ngrok on port 443
-  shell: nohup /usr/local/bin/ngrok http 443 > /var/log/ngrok.log 2>&1 &
+  ansible.builtin.shell: nohup /usr/local/bin/ngrok http 443 > /var/log/ngrok.log 2>&1 &
   
 - name: Get Wazuh dashboard URL
-  shell: curl http://localhost:4040/api/tunnels | jq ".tunnels[0].public_url"
+  ansible.builtin.shell: curl http://localhost:4040/api/tunnels | jq ".tunnels[0].public_url"
   register: ngrok_output
 
 - name: Ngrok output 
   debug:
     msg: "(Ngrok) Wazuh dashboard URL: {{ ngrok_output.stdout }}"
+
+- name: Add agent
+  ansible.builtin.shell: |
+    curl -o wazuh-agent-4.8.1-1.x86_64.rpm https://packages.wazuh.com/4.x/yum/wazuh-agent-4.8.1-1.x86_64.rpm \
+    && sudo WAZUH_MANAGER='192.168.100.66' WAZUH_AGENT_NAME='server2' rpm -ihv wazuh-agent-4.8.1-1.x86_64.rpm
+  args:
+    chdir: "/tmp"
+
+- name: Start wazuh agent service
+  ansible.builtin.service:
+    name: wazuh-agent
+    state: started
+    enabled: yes

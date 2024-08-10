@@ -1,0 +1,27 @@
+- name: Import Wazuh GPG key
+  ansible.builtin.rpm_key:
+    state: present
+    key: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+
+- name: Add Wazuh repository
+  ansible.builtin.yum_repository:
+    name: wazuh
+    description: Wazuh repository
+    baseurl: https://packages.wazuh.com/4.x/yum/
+    gpgcheck: yes
+    gpgkey: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+    enabled: yes
+
+- name: Install Wazuh manager
+  ansible.builtin.package:
+    name: wazuh-manager
+    state: present
+
+- name: Start Wazuh manager service
+  ansible.builtin.service:
+    name: wazuh-manager
+    state: started
+    enabled: yes
+
+
+
