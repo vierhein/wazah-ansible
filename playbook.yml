@@ -25,7 +25,7 @@
 
     - name: manager test
       shell: |
-        curl -k -X GET "{{ hostvars['wazuh-manager']['ansible_ssh_host'] }}:55000/" -H "Authorization: Bearer $(curl -u wazuh-wui:wazuh-wui -k -X POST 'https://{{ hostvars['wazuh-manager']['ansible_ssh_host'] }}:55000/security/user/authenticate?raw=true')" | jq .
+        curl -k -X GET "https://{{ hostvars['wazuh-manager']['ansible_ssh_host'] }}:55000/" -H "Authorization: Bearer $(curl -u wazuh-wui:wazuh-wui -k -X POST 'https://{{ hostvars['wazuh-manager']['ansible_ssh_host'] }}:55000/security/user/authenticate?raw=true')" | jq .
       register: manager_response
 
     - name: manager test result
