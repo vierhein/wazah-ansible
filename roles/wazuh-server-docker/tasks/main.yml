@@ -85,7 +85,7 @@
 - name: Add wazuh agent
   ansible.builtin.shell: |
     curl -o wazuh-agent-4.8.1-1.x86_64.rpm https://packages.wazuh.com/4.x/yum/wazuh-agent-4.8.1-1.x86_64.rpm \
-    && sudo WAZUH_MANAGER='192.168.100.66' WAZUH_AGENT_NAME='server4' rpm -ihv wazuh-agent-4.8.1-1.x86_64.rpm > wazuh-agent
+    && sudo WAZUH_MANAGER='{{ hostvars['wazuh-server']['ansible_ssh_host'] }}' WAZUH_AGENT_NAME='server' rpm -ihv wazuh-agent-4.8.1-1.x86_64.rpm > wazuh-agent
   args:
     chdir: /home/vagrant/
     creates: /home/vagrant/wazuh-agent

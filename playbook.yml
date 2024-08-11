@@ -16,7 +16,7 @@
   tasks:
     - name: server test
       shell: |
-        curl -k -X GET "https://192.168.100.66:55000/" -H "Authorization: Bearer $(curl -u wazuh-wui:MyS3cr37P450r.*- -k -X POST 'https://192.168.100.66:55000/security/user/authenticate?raw=true')" | jq .
+        curl -k -X GET "https://{{ hostvars['wazuh-server']['ansible_ssh_host'] }}:55000/" -H "Authorization: Bearer $(curl -u wazuh-wui:MyS3cr37P450r.*- -k -X POST 'https://{{ hostvars['wazuh-server']['ansible_ssh_host'] }}:55000/security/user/authenticate?raw=true')" | jq .
       register: server_response
 
     - name: server test result
@@ -25,7 +25,7 @@
 
     - name: manager test
       shell: |
-        curl -k -X GET "https://192.168.100.67:55000/" -H "Authorization: Bearer $(curl -u wazuh-wui:wazuh-wui -k -X POST 'https://192.168.100.67:55000/security/user/authenticate?raw=true')" | jq .
+        curl -k -X GET "{{ hostvars['wazuh-manager']['ansible_ssh_host'] }}:55000/" -H "Authorization: Bearer $(curl -u wazuh-wui:wazuh-wui -k -X POST 'https://{{ hostvars['wazuh-manager']['ansible_ssh_host'] }}:55000/security/user/authenticate?raw=true')" | jq .
       register: manager_response
 
     - name: manager test result
