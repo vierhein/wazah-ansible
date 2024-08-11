@@ -1,5 +1,5 @@
 - name: Install dependencis
-  yum:
+  ansible.builtin.package:
     name: "{{ item }}"
     state: present
   loop:
@@ -9,19 +9,19 @@
     - lvm2
 
 - name: Add Docker repo
-  get_url:
+  ansible.builtin.get_url:
     url: https://download.docker.com/linux/centos/docker-ce.repo
     dest: /etc/yum.repos.d/docer-ce.repo
 
 - name: Enable Docker Edge repo
-  ini_file:
+  community.general.ini_file:
     dest: /etc/yum.repos.d/docer-ce.repo
     section: 'docker-ce-edge'
     option: enabled
     value: 0
 
 - name: Install Docker
-  package:
+  ansible.builtin.package:
     name: "{{ item }}"
     state: present
   loop:
@@ -50,23 +50,26 @@
     version: v4.8.1
     depth: 1
 
-- name: Creating certs
-  ansible.builtin.shell: docker compose -f generate-indexer-certs.yml run --rm generator
-  args:
-    chdir: "/home/vagrant/wazuh-docker/single-node"
+- name: Creating certs wazuh single node
+  community.docker.docker_compose_v2:
+    project_src: /home/vagrant/wazuh-docker/single-node
+    files: generate-indexer-certs.yml
 
-- name: Run docker compose
-  ansible.builtin.shell: docker compose up -d
-  args:
-    chdir: "/home/vagrant/wazuh-docker/single-node"
+- name: Run wazuh docker compose single node 
+  community.docker.docker_compose_v2:
+    project_src: /home/vagrant/wazuh-docker/single-node
+    state: present
 
-- name: Download and Install ngrok
-  ansible.builtin.shell: | 
-    curl -O https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz \
-    && tar xvzf ngrok-v3-stable-linux-amd64.tgz -C /usr/local/bin \
-    && /usr/local/bin/ngrok config add-authtoken 2SVjZrBH1GHCkL73ghmSdLL5cjA_55pSui56Lcu7ZHLMCMcAg
+- name: Download, untar and install ngrok
+  ansible.builtin.unarchive:
+    src: https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+    dest: /usr/local/bin
+    remote_src: yes
+
+- name: Add ngrok authtoken
+  ansible.builtin.shell: /usr/local/bin/ngrok config add-authtoken 2SVjZrBH1GHCkL73ghmSdLL5cjA_55pSui56Lcu7ZHLMCMcAg > ngrok-authtoken
   args:
-    chdir: "/home/vagrant/wazuh-docker" 
+    creates: /home/vagrant/ngrok-authtoken
   
 - name: Run ngrok on port 443
   ansible.builtin.shell: nohup /usr/local/bin/ngrok http 443 > /var/log/ngrok.log 2>&1 &
@@ -79,12 +82,13 @@
   debug:
     msg: "(Ngrok) Wazuh dashboard URL: {{ ngrok_output.stdout }}"
 
-- name: Add agent
+- name: Add wazuh agent
   ansible.builtin.shell: |
     curl -o wazuh-agent-4.8.1-1.x86_64.rpm https://packages.wazuh.com/4.x/yum/wazuh-agent-4.8.1-1.x86_64.rpm \
-    && sudo WAZUH_MANAGER='192.168.100.66' WAZUH_AGENT_NAME='server2' rpm -ihv wazuh-agent-4.8.1-1.x86_64.rpm
+    && sudo WAZUH_MANAGER='192.168.100.66' WAZUH_AGENT_NAME='server4' rpm -ihv wazuh-agent-4.8.1-1.x86_64.rpm > wazuh-agent
   args:
-    chdir: "/tmp"
+    chdir: /home/vagrant/
+    creates: /home/vagrant/wazuh-agent
 
 - name: Start wazuh agent service
   ansible.builtin.service:
