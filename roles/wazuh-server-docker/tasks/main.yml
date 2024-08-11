@@ -47,7 +47,7 @@
   ansible.builtin.git:
     repo: 'https://github.com/wazuh/wazuh-docker.git'
     dest: /home/vagrant/wazuh-docker
-    version: v4.8.1
+    version: "{{ wazuh_version }}"
     depth: 1
 
 - name: Creating certs wazuh single node

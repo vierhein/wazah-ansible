@@ -1,5 +1,7 @@
 - name: wazuh-server
   hosts: wazuh-server
+  vars:
+    wazuh_version: v4.8.1
   become: true
   roles:
     - wazuh-server-docker
